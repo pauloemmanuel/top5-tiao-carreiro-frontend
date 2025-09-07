@@ -6,7 +6,7 @@ const Ranking = ({ songs, error }) => {
       <div className="card p-12 text-center">
         <div className="text-6xl mb-6">🎵</div>
         <h3 className="text-2xl font-bold text-wood-700 mb-4">
-          Erro ao conectar com a API do backend.
+          Erro ao listar as músicas.
         </h3>
       </div>
     );

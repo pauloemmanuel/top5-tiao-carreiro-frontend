@@ -9,7 +9,7 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
     return youtubeRegex.test(url);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
@@ -23,7 +23,12 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
       return;
     }
     
-    onSubmit(youtubeUrl);
+    const result = await onSubmit(youtubeUrl);
+    if (result?.error) {
+      setError(result.error);
+      return;
+    }
+    
     setYoutubeUrl('');
   };
 

@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from './auth/AuthModal';
 
 const Header = () => {
+  const { isAuthenticated, user } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   return (
     <header className="relative overflow-hidden">
       {/* Background with overlay */}
@@ -13,6 +18,26 @@ const Header = () => {
           backgroundPosition: 'center',
         }}
       ></div>
+      
+      {/* Auth button */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-medium transition flex items-center"
+        >
+          {isAuthenticated ? (
+            <>
+              <span className="mr-2">👋</span>
+              <span>{user?.name?.split(' ')[0] || 'Usuário'}</span>
+            </>
+          ) : (
+            <>
+              <span className="mr-2">👤</span>
+              <span>Entrar</span>
+            </>
+          )}
+        </button>
+      </div>
       
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-16 text-center">
@@ -40,6 +65,9 @@ const Header = () => {
         <div className="absolute bottom-4 left-8 text-white/20 text-5xl">♪</div>
         <div className="absolute bottom-8 right-4 text-white/20 text-3xl">♫</div>
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 };
