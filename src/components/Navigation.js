@@ -1,26 +1,24 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const Navigation = ({ currentView, onViewChange }) => {
+const Navigation = ({ currentView, onViewChange, onReloadTop5 }) => {
   const { isAuthenticated, isAdmin } = useAuth();
+
+  if (!isAuthenticated) {
+    return null; // Usuário não logado não verá o menu
+  }
 
   const navItems = [
     {
       id: 'top5',
-      label: 'Top 5',
-      icon: '🏆',
-      description: 'Ranking atual'
-    },
-    {
-      id: 'all-songs',
-      label: 'Todas as Músicas',
-      icon: '🎼',
-      description: 'Acervo completo'
+      label: 'Ranking Completo',
+      icon: '🥇', // Alterado para medalha de ouro
+      description: 'Top 5 + acervo completo'
     }
   ];
 
   // Adicionar item admin se o usuário for admin
-  if (isAuthenticated && isAdmin) {
+  if (isAdmin) {
     navItems.push({
       id: 'admin',
       label: 'Admin',
@@ -35,7 +33,13 @@ const Navigation = ({ currentView, onViewChange }) => {
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onViewChange(item.id)}
+            onClick={() => {
+              if (item.id === 'top5' && currentView === 'top5' && onReloadTop5) {
+                onReloadTop5();
+              } else {
+                onViewChange(item.id);
+              }
+            }}
             className={`
               flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
               ${currentView === item.id

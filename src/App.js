@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import Ranking from './components/Ranking';
-import AllSongs from './components/AllSongs';
 import SuggestForm from './components/SuggestForm';
 import LoadingSpinner from './components/LoadingSpinner';
 import AdminLayout from './components/admin/AdminLayout';
@@ -16,15 +15,23 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [currentView, setCurrentView] = useState('top5');
 
+  // Atualiza ranking ao trocar para Top 5
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+    if (view === 'top5') {
+      refreshSongs();
+    }
+  };
+
   const handleSubmit = async (youtubeUrl) => {
     setSubmitting(true);
     try {
       const response = await sugestoesService.enviarSugestao({ url_youtube: youtubeUrl });
-      if (response.data?.success) {
+      if (response.success) {
         await refreshSongs();
-        return { success: true, message: response.data.message };
+        return { success: true, message: response.message };
       }
-      return { error: response.data?.message || 'Erro ao enviar sugestão' };
+      return { error: response.message || 'Erro ao enviar sugestão' };
     } catch (error) {
       console.error('Erro ao submeter sugestão:', error);
       if (error.response?.status === 409) {
@@ -53,9 +60,6 @@ function App() {
             )}
           </div>
         );
-      
-      case 'all-songs':
-        return <AllSongs />;
       
       case 'admin':
         return (
@@ -88,7 +92,8 @@ function App() {
           <div className="space-y-8">
             <Navigation 
               currentView={currentView} 
-              onViewChange={setCurrentView} 
+              onViewChange={handleViewChange} 
+              onReloadTop5={refreshSongs}
             />
             
             {renderContent()}

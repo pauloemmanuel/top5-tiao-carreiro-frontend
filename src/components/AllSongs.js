@@ -21,9 +21,15 @@ const AllSongs = () => {
       });
       
       setSongs(response.data || []);
-      setCurrentPage(response.current_page || 1);
-      setTotalPages(response.last_page || 1);
-      setTotalSongs(response.total || 0);
+      if (response.pagination) {
+        setCurrentPage(response.pagination.current_page || 1);
+        setTotalPages(response.pagination.last_page || 1);
+        setTotalSongs(response.pagination.total || 0);
+      } else {
+        setCurrentPage(response.current_page || 1);
+        setTotalPages(response.last_page || 1);
+        setTotalSongs(response.total || 0);
+      }
     } catch (err) {
       console.error('Erro ao carregar músicas:', err);
       setError('Erro ao carregar músicas');

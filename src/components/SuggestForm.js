@@ -27,6 +27,13 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
     }
 
     const result = await onSubmit(youtubeUrl);
+    if (result?.success) {
+      setError('');
+      const message = result.message || 'Sugestão enviada com sucesso! Aguarde a aprovação.';
+      setSuccessMessage(message);
+      setYoutubeUrl('');
+      return;
+    }
     if (result?.error) {
       // Se for erro 422, pega a primeira mensagem de validação
       if (result.errorObj && result.errorObj.response?.status === 422) {
@@ -39,11 +46,6 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
       setError(result.error);
       return;
     }
-    if (result?.success) {
-      const message = result.message || 'Sugestão enviada com sucesso! Aguarde a aprovação.';
-      setSuccessMessage(message);
-    }
-    setYoutubeUrl('');
   };
 
   return (
@@ -61,7 +63,11 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
               id="youtube-url"
               type="text"
               value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
+              onChange={(e) => {
+                setYoutubeUrl(e.target.value);
+                setError('');
+                setSuccessMessage('');
+              }}
               placeholder="https://www.youtube.com/watch?v=..."
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-wood-500 transition-colors ${
                 error ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-wood-500'
