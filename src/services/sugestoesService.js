@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { validateYoutubeUrl } from './validators';
 
 const sugestoesService = {
   enviarSugestao: async (sugestaoData) => {

@@ -169,12 +169,7 @@ const AdminSuggestions = () => {
                 </button>
                 
                 <button
-                  onClick={() => {
-                    const motivo = prompt('Motivo da rejeição (opcional):');
-                    if (motivo !== null) {
-                      handleReject(sugestao.id, motivo);
-                    }
-                  }}
+                  onClick={() => handleReject(sugestao.id)}
                   disabled={processing[sugestao.id]}
                   className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center"
                 >

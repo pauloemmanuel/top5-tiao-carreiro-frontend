@@ -19,17 +19,19 @@ function App() {
   const handleSubmit = async (youtubeUrl) => {
     setSubmitting(true);
     try {
-      const response = await sugestoesService.enviarSugestao({ url: youtubeUrl });
+      const response = await sugestoesService.enviarSugestao({ url_youtube: youtubeUrl });
       if (response.data?.success) {
-        // Atualizar a lista após enviar com sucesso
         await refreshSongs();
+        return { success: true, message: response.data.message };
       }
-      return { success: true };
+      return { error: response.data?.message || 'Erro ao enviar sugestão' };
     } catch (error) {
       console.error('Erro ao submeter sugestão:', error);
-      // Tratar erros específicos como duplicação (409)
       if (error.response?.status === 409) {
         return { error: 'Esta música já foi sugerida' };
+      }
+      if (error.response?.status === 422) {
+        return { error: 'Erro de validação', errorObj: error };
       }
       return { error: 'Erro ao enviar sugestão' };
     } finally {

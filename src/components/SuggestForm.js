@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { getFirstValidationError } from '../services/validationHelper';
 
 const SuggestForm = ({ onSubmit, submitting = false }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const validateYouTubeUrl = (url) => {
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
@@ -12,42 +14,48 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+    setSuccessMessage('');
+
     if (!youtubeUrl.trim()) {
       setError('Por favor, insira um link do YouTube');
       return;
     }
-    
+
     if (!validateYouTubeUrl(youtubeUrl)) {
       setError('Por favor, insira um link válido do YouTube');
       return;
     }
-    
+
     const result = await onSubmit(youtubeUrl);
     if (result?.error) {
+      // Se for erro 422, pega a primeira mensagem de validação
+      if (result.errorObj && result.errorObj.response?.status === 422) {
+        const msg = getFirstValidationError(result.errorObj);
+        if (msg) {
+          setError(msg);
+          return;
+        }
+      }
       setError(result.error);
       return;
     }
-    
+    if (result?.success) {
+      const message = result.message || 'Sugestão enviada com sucesso! Aguarde a aprovação.';
+      setSuccessMessage(message);
+    }
     setYoutubeUrl('');
   };
 
   return (
     <div className="card p-8">
       <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-wood-700 mb-2 font-country">
-          🎤 Sugerir Nova Música
-        </h3>
-        <p className="text-gray-600">
-          Encontrou uma música incrível da dupla? Compartilhe conosco!
-        </p>
+        <h3 className="text-2xl font-bold text-wood-700 mb-2 font-country">🎤 Sugerir Nova Música</h3>
+        <p className="text-gray-600">Encontrou uma música incrível da dupla? Compartilhe conosco!</p>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="youtube-url" className="block text-sm font-medium text-gray-700 mb-2">
-            Link do YouTube
-          </label>
+          <label htmlFor="youtube-url" className="block text-sm font-medium text-gray-700 mb-2">Link do YouTube</label>
           <div className="relative">
             <input
               id="youtube-url"
@@ -66,6 +74,7 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
               </svg>
             </div>
           </div>
+
           {error && (
             <p className="mt-2 text-sm text-red-600 flex items-center">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,13 +83,18 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
               {error}
             </p>
           )}
+
+          {successMessage && (
+            <p className="mt-2 text-sm text-green-700 flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {successMessage}
+            </p>
+          )}
         </div>
-        
-        <button 
-          type="submit" 
-          disabled={submitting}
-          className="btn-primary w-full flex items-center justify-center relative"
-        >
+
+        <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center relative">
           {submitting ? (
             <>
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -99,7 +113,7 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
           )}
         </button>
       </form>
-      
+
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="flex items-start">
           <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { validateYoutubeUrl } from './validators';
 
 const musicasService = {
   listarMusicas: async (params = {}) => {
@@ -7,6 +8,14 @@ const musicasService = {
   },
 
   criarMusica: async (musicaData) => {
+    if (musicaData && musicaData.url_youtube) {
+      validateYoutubeUrl(musicaData.url_youtube);
+    } else {
+      const err = new Error('A URL do YouTube é obrigatória');
+      err.code = 'required';
+      throw err;
+    }
+
     const response = await apiClient.post('/musicas', musicaData);
     return response.data;
   },
