@@ -1,23 +1,23 @@
 import React from 'react';
 
-const Ranking = ({ songs }) => {
+const Ranking = ({ songs, error }) => {
+  if (error) {
+    return (
+      <div className="card p-12 text-center">
+        <div className="text-6xl mb-6">🎵</div>
+        <h3 className="text-2xl font-bold text-wood-700 mb-4">
+          Erro ao conectar com a API do backend.
+        </h3>
+      </div>
+    );
+  }
   if (!songs || songs.length === 0) {
-    // Verifica se houve erro de conexão (exemplo: songs === null)
-    const isError = songs === null;
     return (
       <div className="card p-12 text-center">
         <div className="text-6xl mb-6">🎵</div>
         <h3 className="text-2xl font-bold text-wood-700 mb-4">
           Nenhuma música encontrada
         </h3>
-        <p className="text-gray-600 text-lg">
-          As músicas aparecerão aqui assim que estiverem disponíveis na API
-        </p>
-        <div className={`mt-8 p-4 rounded-lg border ${isError ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
-          <p className={`font-medium ${isError ? 'text-red-800' : 'text-amber-800'}`}>
-            {isError ? 'Erro ao conectar com a API do backend.' : 'Aguardando conexão com a API do backend...'}
-          </p>
-        </div>
       </div>
     );
   }
