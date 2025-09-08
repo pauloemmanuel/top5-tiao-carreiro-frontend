@@ -7,4 +7,3 @@ Dockerfile
 .git
 .gitignore
 npm-debug.log
-.env
