@@ -24,6 +24,11 @@ const musicasService = {
     const response = await apiClient.get('/musicas/top5');
     return response.data;
   },
+
+  listarDemais: async (params = {}) => {
+    const response = await apiClient.get('/musicas/demais', { params });
+    return response.data;
+  },
   
   obterMusica: async (id) => {
     const response = await apiClient.get(`/musicas/${id}`);

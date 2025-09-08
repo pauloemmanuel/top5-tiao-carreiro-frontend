@@ -23,7 +23,7 @@ const Navigation = ({ currentView, onViewChange, onReloadTop5 }) => {
       id: 'admin',
       label: 'Admin',
       icon: '⚙️',
-      description: 'Gerenciar sugestões'
+      description: 'Gerenciar músicas'
     });
   }
 

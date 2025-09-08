@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { musicasService } from '../services';
+import formatViews from '../helpers/formatViews';
 import LoadingSpinner from './LoadingSpinner';
 
 const AllSongs = () => {
@@ -42,15 +43,7 @@ const AllSongs = () => {
     loadSongs();
   }, []);
 
-  // Formata visualizações para pt-BR: bilhões, milhões, mil, ou número abaixo de mil
-  const formatViews = (num) => {
-    const n = Number(num) || 0;
-    const formatter = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
-    if (n >= 1e9) return `${formatter.format(n / 1e9)} bilhões`;
-    if (n >= 1e6) return `${formatter.format(n / 1e6)} milhões`;
-    if (n >= 1e3) return `${formatter.format(n / 1e3)} mil`;
-    return new Intl.NumberFormat('pt-BR').format(n);
-  };
+  // using shared formatViews helper
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {

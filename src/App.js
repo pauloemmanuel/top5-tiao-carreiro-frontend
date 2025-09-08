@@ -4,8 +4,7 @@ import Navigation from './components/Navigation';
 import Ranking from './components/Ranking';
 import SuggestForm from './components/SuggestForm';
 import LoadingSpinner from './components/LoadingSpinner';
-import AdminLayout from './components/admin/AdminLayout';
-import AdminSuggestions from './components/admin/AdminSuggestions';
+import AdminTabs from './components/admin/AdminTabs';
 import { AuthProvider } from './contexts/AuthContext';
 import { sugestoesService } from './services';
 import useTop5 from './hooks/useTop5';
@@ -62,11 +61,7 @@ function App() {
         );
       
       case 'admin':
-        return (
-          <AdminLayout>
-            <AdminSuggestions />
-          </AdminLayout>
-        );
+        return <AdminTabs />;
       
       default:
         return (
@@ -88,7 +83,7 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
         <Header />
         
-        <main className="max-w-4xl mx-auto px-4 py-8">
+        <main className="max-w-4xl max-w-[1366px] mx-auto px-4 py-8">
           <div className="space-y-8">
             <Navigation 
               currentView={currentView} 
