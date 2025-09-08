@@ -16,9 +16,7 @@ const DemaisMusicas = () => {
 
   // using shared formatViews helper
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  // keep showing the list container while loading but dim it and show a spinner overlay
 
   if (error) {
     return (
@@ -37,7 +35,14 @@ const DemaisMusicas = () => {
   }
 
   return (
-    <div className="mt-12 pt-8 border-t border-gray-200">
+    <div className={`relative ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+      {loading && (
+        <div className="absolute inset-0 bg-white/70 z-20 flex items-center justify-center rounded">
+          <LoadingSpinner />
+        </div>
+      )}
+
+      <div className="mt-12 pt-8 border-t border-gray-200">
       <div className="text-center mb-6">
         <h3 className="text-xl font-semibold text-gray-700">
           Outras Músicas no Acervo
@@ -157,6 +162,7 @@ const DemaisMusicas = () => {
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 };

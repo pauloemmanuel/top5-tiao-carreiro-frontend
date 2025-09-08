@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { getFirstValidationError } from '../services/validationHelper';
+import validateYoutubeUrl from '../helpers/validateYoutubeUrl';
 
 const SuggestForm = ({ onSubmit, submitting = false }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const validateYouTubeUrl = (url) => {
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-    return youtubeRegex.test(url);
-  };
+  // use shared helper validateYoutubeUrl
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +19,7 @@ const SuggestForm = ({ onSubmit, submitting = false }) => {
       return;
     }
 
-    if (!validateYouTubeUrl(youtubeUrl)) {
+    if (!validateYoutubeUrl(youtubeUrl)) {
       setError('Por favor, insira um link válido do YouTube');
       return;
     }

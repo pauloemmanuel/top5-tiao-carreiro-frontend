@@ -3,17 +3,15 @@ import { musicasService } from '../../services';
 import { getFirstValidationError } from '../../services/validationHelper';
 import LoadingSpinner from '../LoadingSpinner';
 import formatViews from '../../helpers/formatViews';
+import validateYoutubeUrl from '../../helpers/validateYoutubeUrl';
 
 const AdminMusicas = () => {
   const [musicas, setMusicas] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const validateYouTubeUrl = (url) => {
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-    return youtubeRegex.test(url);
-  };
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalSongs, setTotalSongs] = useState(0);
@@ -27,8 +25,8 @@ const AdminMusicas = () => {
   });
 
 
-  const loadMusicas = useCallback(async (page = currentPage) => {
-    setLoading(true);
+  const loadMusicas = useCallback(async (page = 1) => {
+    setListLoading(true);
     setError(null);
     
     try {
@@ -37,19 +35,20 @@ const AdminMusicas = () => {
         per_page: 10
       });
       
-      setMusicas(response.data || []);
-      if (response.pagination) {
-        setCurrentPage(response.pagination.current_page || 1);
-        setTotalPages(response.pagination.last_page || 1);
-        setTotalSongs(response.pagination.total || 0);
-      }
+  const list = response.data || [];
+  const pg = response.pagination || {};
+
+  setMusicas(list);
+  setCurrentPage(pg.current_page || page || 1);
+  setTotalPages(pg.last_page || pg.total_pages || 1);
+  setTotalSongs(pg.total || 0);
     } catch (err) {
       console.error('Erro ao carregar músicas:', err);
       setError('Erro ao carregar músicas');
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
-  }, [currentPage]);
+  }, []);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
@@ -66,25 +65,26 @@ const AdminMusicas = () => {
       setError('Por favor, insira um link do YouTube');
       return;
     }
-    if (!validateYouTubeUrl(formData.url_youtube)) {
+    if (!validateYoutubeUrl(formData.url_youtube)) {
       setError('Por favor, insira um link válido do YouTube');
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
     
     try {
       if (editingMusic) {
         await musicasService.atualizarMusica(editingMusic.id, formData);
       } else {
-        await musicasService.criarMusica(formData);
+        const toCreate = { ...formData, status: 'ativa' };
+        await musicasService.criarMusica(toCreate);
       }
       setShowForm(false);
       setEditingMusic(null);
       setFormData({ url_youtube: '', titulo: '', visualizacoes: '', status: 'ativa' });
       const message = editingMusic ? 'Música atualizada com sucesso.' : 'Música criada com sucesso.';
       setSuccessMessage(message);
-      loadMusicas(currentPage);
+      await loadMusicas(currentPage);
     } catch (err) {
       console.error('Erro ao salvar música:', err);
       if (err && err.response && err.response.status === 422) {
@@ -94,11 +94,13 @@ const AdminMusicas = () => {
         } else {
           setError('Erro de validação ao salvar música.');
         }
+      } else if (err && err.response && err.response.status === 409) {
+        setError('Música já cadastrada.');
       } else {
         setError('Erro ao salvar música: ' + (err.message || 'Erro desconhecido'));
       }
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -117,7 +119,7 @@ const AdminMusicas = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta música?')) {
-      setLoading(true);
+      setListLoading(true);
       try {
         await musicasService.excluirMusica(id);
         loadMusicas(currentPage);
@@ -125,7 +127,7 @@ const AdminMusicas = () => {
         console.error('Erro ao excluir música:', err);
         setError('Erro ao excluir música');
       } finally {
-        setLoading(false);
+        setListLoading(false);
       }
     }
   };
@@ -155,7 +157,15 @@ const AdminMusicas = () => {
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">Gerenciar Músicas</h2>
           <button
-            onClick={() => setShowForm(true)}
+            type="button"
+            onClick={() => {
+              // always open in create mode
+              setEditingMusic(null);
+              setFormData({ url_youtube: '', titulo: '', visualizacoes: '', status: 'ativa' });
+              setError(null);
+              setSuccessMessage('');
+              setShowForm(true);
+            }}
             className="bg-wood-600 text-white px-4 py-2 rounded-lg hover:bg-wood-700 transition-colors"
           >
             ➕ Nova Música
@@ -260,14 +270,25 @@ const AdminMusicas = () => {
                 </>
               )}
 
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-wood-600 text-white px-4 py-2 rounded-lg hover:bg-wood-700 transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Salvando...' : (editingMusic ? 'Atualizar' : 'Criar')}
-                </button>
+              <div className="relative">
+                {/* submitting overlay */}
+                {submitting && (
+                  <div className="absolute inset-0 bg-white/70 z-20 flex items-center justify-center rounded">
+                    <div className="text-center">
+                      <LoadingSpinner />
+                      <div className="text-sm text-gray-700 mt-2">Enviando...</div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="bg-wood-600 text-white px-4 py-2 rounded-lg hover:bg-wood-700 transition-colors disabled:opacity-50"
+                  >
+                    {submitting ? 'Salvando...' : (editingMusic ? 'Atualizar' : 'Adicionar')}
+                  </button>
                 <button
                   type="button"
                   onClick={cancelForm}
@@ -275,17 +296,17 @@ const AdminMusicas = () => {
                 >
                   Cancelar
                 </button>
+                </div>
               </div>
             </form>
           </div>
         )}
 
-        {loading && !showForm && <LoadingSpinner />}
-
-        {!loading && musicas.length > 0 && (
-          <div className="card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+  <div className={`relative ${(listLoading || submitting) ? 'opacity-60 pointer-events-none' : ''}`}>
+      {musicas.length > 0 ? (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -358,18 +379,19 @@ const AdminMusicas = () => {
               </table>
             </div>
           </div>
-        )}
+      ) : (
+        <div className="card p-12 text-center">
+          <div className="text-6xl mb-6">🎵</div>
+          <h3 className="text-2xl font-bold text-wood-700 mb-4">
+            Nenhuma música encontrada
+          </h3>
+        </div>
+      )}
 
-        {!loading && musicas.length === 0 && (
-          <div className="card p-12 text-center">
-            <div className="text-6xl mb-6">🎵</div>
-            <h3 className="text-2xl font-bold text-wood-700 mb-4">
-              Nenhuma música encontrada
-            </h3>
-          </div>
-        )}
+  {/* listLoading overlay removed — list stays visible but dimmed and non-interactive */}
+  </div>
 
-        {totalPages > 1 && (
+    {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-2 mt-6">
             <button
               onClick={() => goToPage(currentPage - 1)}

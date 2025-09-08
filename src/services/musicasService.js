@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { validateYoutubeUrl } from './validators';
+import validateYoutubeUrl from '../helpers/validateYoutubeUrl';
 
 const musicasService = {
   listarMusicas: async (params = {}) => {
